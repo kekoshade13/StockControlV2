@@ -1,0 +1,14 @@
+﻿<MudNavMenu>
+    <MudText Typo="Typo.h6" Class="px-4">Administrador</MudText>
+    <MudNavLink Href="/allorders">Ver todas las ordenes</MudNavLink>
+    <MudNavGroup Title="Reportes" Expanded="true">
+        <MudNavLink Href="/productivity">Generar productividad</MudNavLink>
+    </MudNavGroup>
+    <MudSpacer />
+    <MudNavLink Href="/about">Administrador</MudNavLink>
+</MudNavMenu>
+
+@code {
+    [Inject]
+    public NavigationManager? NavigationManager { get; set; }
+}

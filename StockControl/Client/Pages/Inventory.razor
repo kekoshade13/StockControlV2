@@ -1,0 +1,38 @@
+﻿@page "/inventory"
+@using StockControl.Shared.ModelsDto;
+
+@inject HttpClient Http
+@inject IDialogService DialogService
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudSpacer />
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+            <MudMenuItem>
+                <MudButton OnClick="AddSparePart">Add new spare part</MudButton>
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudButton OnClick="AddQtySparePart">Añadir cantidad de un repuesto</MudButton>
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudButton OnClick="RemoveQtySparePart">Remover cantidad de un repuesto</MudButton>
+            </MudMenuItem>
+        </MudMenu>
+    </MudItem>
+</MudGrid>
+<MudTable T="RepuestosEstadosDto" @ref="_table" Context="repuestoEstado" ServerData="ServerReload" Dense Hover Elevation="0">
+    <HeaderContent>
+        <MudTh>Nombre</MudTh>
+        <MudTh>Código</MudTh>
+        <MudTh>Tipo de stock</MudTh>
+        <MudTh>Cantidad Disponible</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@repuestoEstado.SparePartsDto.Name</MudTd>
+        <MudTd>@repuestoEstado.SparePartsDto.Code</MudTd>
+        <MudTd>@repuestoEstado.TipoStockDto.NameStock</MudTd>
+        <MudTd>@repuestoEstado.Amount</MudTd>
+    </RowTemplate>
+</MudTable>
+
+

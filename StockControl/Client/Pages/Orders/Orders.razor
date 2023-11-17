@@ -1,0 +1,46 @@
+﻿@page "/orders"
+@using StockControl.Shared.ModelsDto;
+
+@inject HttpClient Http
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12">
+            <MudText>Ordenes disponibles</MudText>
+        </MudItem>
+        <MudItem xs="8">
+            <MudTable T="OrdenesTotalesDto" @ref="_table" ServerData="ServerReload" Context="order" Dense Hover Elevation="0">
+                <HeaderContent>
+                    <MudTh>Id</MudTh>
+                    <MudTh>Serie</MudTh>
+                    <MudTh>Escuela</MudTh>
+                    <MudTh>Estado</MudTh>
+                    <MudTh>Tomada por</MudTh>
+                    <MudTh></MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+
+                <RowTemplate>
+                    <MudTd>@order.Id</MudTd>
+                    <MudTd>@order.nOrden</MudTd>
+                    <MudTd>@order.Escuela</MudTd>
+                    <MudTd>@order.Estado</MudTd>
+                    <MudTd>@order.TakenBy</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" OnClick="() => GoToOrder(order.Id)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper Elevation="1">
+                <MudButton>Personaliza tu objetivo</MudButton>
+                <MudButton OnClick="CreateNewOrder">Crear nueva orden</MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+

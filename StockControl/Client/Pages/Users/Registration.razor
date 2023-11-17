@@ -1,0 +1,23 @@
+﻿@page "/registration"
+@using StockControl.Shared.ModelsDto
+
+<EditForm Model="UserRegistrationDto" OnValidSubmit="CreateUser">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+            <MudCardContent>
+                <MudTextField @bind-Value="UserRegistrationDto.FirstName" For="() => UserRegistrationDto.FirstName" Label="Ingresa tu nombre" />
+                <MudTextField @bind-Value="UserRegistrationDto.LastName" For="() => UserRegistrationDto.LastName" Label="Ingresa tu apellido" />
+                <MudTextField @bind-Value="UserRegistrationDto.Email" For="() => UserRegistrationDto.Email" Label="Ingresa tu email" />
+                <MudTextField @bind-Value="UserRegistrationDto.Password" For="() => UserRegistrationDto.Password"
+                            Label="Ingresa tu contraseña" InputType="InputType.Password" />
+                <MudTextField @bind-Value="UserRegistrationDto.ConfirmPassword" For="() => UserRegistrationDto.ConfirmPassword"
+                            Label="Ingresa de nuevo tu contraseña" InputType="InputType.Password" />
+            </MudCardContent>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Text" OnClick="() => MudDialog.Cancel()">Cancelar</MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" ButtonType="ButtonType.Submit">Confirmar</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>

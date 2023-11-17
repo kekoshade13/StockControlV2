@@ -1,0 +1,51 @@
+﻿@using StockControl.Shared.Constants;
+@using StockControl.Shared.ModelsDto;
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Text="OrderNum" T="string"></MudTextField>
+        <MudTextField @bind-Value="SchoolNum" T="int"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancelar</MudButton>
+        <MudButton OnClick="() => CreateNewOrder(OrderNum)">Confirmar</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [Inject]
+    public HttpClient Http { get; set; }
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    public string OrderNum { get; set; }
+    public int SchoolNum { get; set; }
+
+    private async Task CreateNewOrder(string nOrder)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(OrderNum))
+            {
+                OrdenesTotalesDto order = new OrdenesTotalesDto()
+                {
+                    Escuela = SchoolNum,
+                    nOrden = OrderNum,
+                    Estado = OrderStates.New,
+                    TakenBy = string.Empty,
+                    UserName = string.Empty,
+                    EquipoId = 1,
+                    Equipos = null
+                };
+                var response = await Http.PostAsJsonAsync($"api/orders", order);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    MudDialog.Close(true);
+                }
+            }
+        }
+        catch
+        {
+            
+        }
+    }
+}

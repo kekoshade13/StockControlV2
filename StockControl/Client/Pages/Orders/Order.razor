@@ -1,0 +1,56 @@
+﻿@page "/order/{OrderId:int}"
+@using StockControl.Shared.ModelsDto;
+
+@inject HttpClient Http
+
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="10">
+            <MudPaper Class="d-flex justify-center" Elevation="0">
+                <MudGrid>
+                    <MudItem xs="8">
+                        <MudText Typo="Typo.h5">Información básica</MudText>
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudText>Número de serie: @(_orderDto != null ? _orderDto.nOrden : null)</MudText>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudText>Escuela: @(_orderDto != null ? _orderDto.Escuela : null)</MudText>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudText>Equipo: @(_orderDto != null ? _orderDto.Equipos.NameEquip : null)</MudText>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudText>Estado: @(_orderDto != null ? _orderDto.Estado : null)</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int OrderId { get; set; }
+
+    private OrdenDto _orderDto { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"api/orders?ordenTotalId={OrderId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _orderDto = await response.Content.ReadFromJsonAsync<OrdenDto>();
+            }
+        }
+        catch
+        {
+            
+        }
+    }
+}

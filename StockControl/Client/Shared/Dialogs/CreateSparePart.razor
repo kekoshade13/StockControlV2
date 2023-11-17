@@ -1,0 +1,25 @@
+﻿@using StockControl.Shared.Constants;
+@using StockControl.Shared.ModelsDto;
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Text="SparePartName" T="string" Label="Nombre"></MudTextField>
+        <MudTextField @bind-Value="SparePartCode" T="int" Label="Código"></MudTextField>
+        <MudTextField @bind-Value="_qty" T="int" Label="Cantidad Inicial"></MudTextField>
+        <MudSelect T="int" AnchorOrigin="Origin.BottomCenter" @bind-Value="_selectedEquipo">
+            @foreach (var equipo in _equipos)
+            {
+                <MudSelectItem Value="@equipo.Id_Equip">@equipo.NameEquip</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect T="int" AnchorOrigin="Origin.BottomCenter" @bind-Value="_selectedTypeStock">
+            @foreach (var equipo in _typeStockList)
+            {
+                <MudSelectItem Value="@equipo.Id_Stock">@equipo.NameStock</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancelar</MudButton>
+        <MudButton OnClick="() => CreateNewSparePart(SparePartName, SparePartCode)">Confirmar</MudButton>
+    </DialogActions>
+</MudDialog>
