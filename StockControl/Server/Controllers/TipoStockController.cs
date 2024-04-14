@@ -16,8 +16,8 @@ namespace StockControl.Server.Controllers
     {
         //private readonly XXX YYY;
 
-        public TipoStockController(ApplicationDbContext context, IConfiguration configuration)
-            : base(context, configuration) { }
+        public TipoStockController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            : base(context, configuration, httpContextAccessor, userManager) { }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] TipoStockDto tipoStockDto)

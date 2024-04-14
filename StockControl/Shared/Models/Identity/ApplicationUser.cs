@@ -9,11 +9,10 @@ namespace StockControl.Shared.Models.Identity
 {
     public class ApplicationUser : IdentityUser
     {
+        public int CI { get; set; }
         public string Name { get; set; }
         public string LastName { get; set; }
-        public string UserName { get; set; }
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
-        public IdentityRole Role { get; set; }
     }
 }

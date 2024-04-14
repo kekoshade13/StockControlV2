@@ -1,4 +1,7 @@
 ﻿@page "/inventory"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
 @using StockControl.Shared.ModelsDto;
 
 @inject HttpClient Http

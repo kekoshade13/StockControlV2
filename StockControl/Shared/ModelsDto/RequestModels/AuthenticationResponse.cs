@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StockControl.Shared.RequestModels
+namespace StockControl.Shared.ModelsDto.RequestModels
 {
     public class AuthenticationResponse
     {

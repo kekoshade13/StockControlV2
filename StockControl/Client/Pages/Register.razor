@@ -1,0 +1,18 @@
+﻿@page "/register"
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" md="6">
+        <EditForm Model="_registerModel" OnValidSubmit="RegisterUser" Context="register">
+            <DataAnnotationsValidator />
+            <MudTextField @bind-Value="_registerModel.CI" For="() => _registerModel.CI" Label="Ingresa tu cedula" />
+            <MudTextField @bind-Value="_registerModel.UserName" For="() => _registerModel.UserName" Label="Ingresa tu usuario" />
+            <MudTextField @bind-Value="_registerModel.Name" For="() => _registerModel.Name" Label="Ingresa tu nombre" />
+            <MudTextField @bind-Value="_registerModel.LastName" For="() => _registerModel.LastName" Label="Ingresa tu apellido" />
+            <MudTextField @bind-Value="_registerModel.Password" For="() => _registerModel.Password" Label="Ingresa la contraseña" />
+            <MudTextField @bind-Value="_registerModel.ConfirmPassword" For="() => _registerModel.ConfirmPassword" Label="Ingresa la contraseña nuevamente" />
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit">Crear cuenta</MudButton>
+        </EditForm>
+    </MudItem>
+</MudGrid>
+
+            

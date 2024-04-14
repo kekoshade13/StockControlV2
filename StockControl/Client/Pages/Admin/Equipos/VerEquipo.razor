@@ -1,0 +1,16 @@
+﻿<MudDialog>
+    <DialogContent>
+        @if (_equipoDto is not null)
+        {
+            <MudText Typo="Typo.button">Nombre: @_equipoDto.NameEquip</MudText>
+        }
+        else
+        {
+            <MudProgressCircular Indeterminate Color="Color.Secondary" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="() => MudDialog.Cancel()">Cerrar</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenEditDialog">Editar</MudButton>
+    </DialogActions>
+</MudDialog>
