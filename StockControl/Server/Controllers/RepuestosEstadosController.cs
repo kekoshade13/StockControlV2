@@ -14,8 +14,8 @@ namespace StockControl.Server.Controllers
     [AllowAnonymous]
     public class RepuestosEstadosController : Controller
     {
-        public RepuestosEstadosController(ApplicationDbContext context, IConfiguration configuration)
-            : base(context, configuration) { }
+        public RepuestosEstadosController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            : base(context, configuration, httpContextAccessor, userManager) { }
 
         [HttpPost]
         public async Task<IActionResult> Post(RepuestosEstadosDto repuestoEstadoDto)

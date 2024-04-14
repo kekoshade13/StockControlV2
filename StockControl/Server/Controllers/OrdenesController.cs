@@ -14,8 +14,8 @@ namespace StockControl.Server.Controllers
     [AllowAnonymous]
     public class OrdenesController : Controller
     {
-        public OrdenesController(ApplicationDbContext context, IConfiguration configuration)
-            : base(context, configuration) { }
+        public OrdenesController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            : base(context, configuration, httpContextAccessor, userManager) { }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] OrdenesTotalesDto ordenDto)
@@ -27,6 +27,11 @@ namespace StockControl.Server.Controllers
                     return BadRequest();
                 }
                 var equipo = await DbContext.Equipos.Where(x => x.Id_Equip == ordenDto.EquipoId).FirstOrDefaultAsync();
+                ApplicationUser user = await UserManager.FindByNameAsync(UserName);
+                if (user == null)
+                {
+                    return BadRequest("-1");
+                }
                 if (equipo != null)
                 {
                     OrdenesTotales ordenTotal = new()
@@ -34,7 +39,7 @@ namespace StockControl.Server.Controllers
                         Active = true,
                         nOrden = ordenDto.nOrden,
                         Escuela = ordenDto.Escuela,
-                        //UserName = new ApplicationUser { UserName = ordenDto.UserName },
+                        UserName = new ApplicationUser { UserName = ordenDto.UserName },
                         Date = DateTime.UtcNow.ToShortDateString(),
                         Hour = DateTime.UtcNow.Hour.ToString(),
                         TotalDate = DateTime.UtcNow.ToString(),
@@ -42,6 +47,10 @@ namespace StockControl.Server.Controllers
                         Equipo = equipo
                     };
                     await DbContext.OrdenesTotales.AddAsync(ordenTotal);
+                }
+                else
+                {
+                    return BadRequest("-2");
                 }
                 return Ok(await DbContext.SaveChangesAsync());
             }

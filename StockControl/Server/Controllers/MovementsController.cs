@@ -14,8 +14,8 @@ namespace StockControl.Server.Controllers
     [AllowAnonymous]
     public class MovementsController : Controller
     {
-        public MovementsController(ApplicationDbContext context, IConfiguration configuration)
-            : base(context, configuration) { }
+        public MovementsController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            : base(context, configuration, httpContextAccessor, userManager) { }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] SparePartsDto sparePartsDto)

@@ -14,8 +14,8 @@ namespace StockControl.Server.Controllers
     [AllowAnonymous]
     public class SparePartsController : Controller
     {
-        public SparePartsController(ApplicationDbContext context, IConfiguration configuration)
-            : base(context, configuration) { }
+        public SparePartsController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            : base(context, configuration, httpContextAccessor, userManager) { }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] SparePartsDto sparePartsDto)

@@ -3,17 +3,8 @@
     <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Stock Control</MudText>
     <MudDivider Class="my-2" />
     <MudNavLink Href="orders">Ordenes</MudNavLink>
-    <MudNavLink Href="/servers">Movimientos</MudNavLink>
-    <MudNavLink Href="/inventory">Inventario</MudNavLink>
-    <MudNavGroup Title="Ajustes" Expanded="true">
-        <MudNavLink Href="/users">Users</MudNavLink>
-        <MudNavLink Href="/security">Security</MudNavLink>
-    </MudNavGroup>
+    <MudNavLink Href="servers">Movimientos</MudNavLink>
+    <MudNavLink Href="inventory">Inventario</MudNavLink>
     <MudSpacer />
-    <MudNavLink Href="/about">Administrador</MudNavLink>
+    <MudNavLink Href="administration">Administrador</MudNavLink>
 </MudNavMenu>
-
-@code {
-    [Inject]
-    public NavigationManager? NavigationManager { get; set; }
-}

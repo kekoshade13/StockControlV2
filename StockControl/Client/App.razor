@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using StockControl.Client.Pages
 
 @inject NavigationManager NavigationManager
 
@@ -6,11 +7,8 @@
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <Authorizing>
-                    <text>Autorizando</text>
-                </Authorizing>
                 <NotAuthorized>
-                    No autorizado pai
+                    <PrincipalLogin></PrincipalLogin>
                 </NotAuthorized>
             </AuthorizeRouteView>
         </Found>
@@ -22,3 +20,23 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    private async Task LogUserAuthenticationState()
+    {
+        var authState = await authenticationState;
+        var user = authState.User;
+
+        if (user.Identity!.IsAuthenticated)
+        {
+            Console.WriteLine($"El usuario: {user.Identity.Name} está logueado");
+        }
+        else
+        {
+            Console.WriteLine("Usuario no logueado :(");
+        }
+    }
+}

@@ -1,0 +1,24 @@
+﻿@page "/login"
+
+@attribute [AllowAnonymous]
+
+@inject IAuthService AuthService
+
+@using Microsoft.AspNetCore.Authorization
+@using StockControl.Client.Services
+
+<AuthorizeView>
+    <NotAuthorized>
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" md="6">
+                <EditForm Model="_loginModel" OnValidSubmit="LoginUser" Context="login">
+                    <MudTextField @bind-Value="_loginModel.UserName" Label="Ingresa tu usuario" />
+                    <MudTextField @bind-Value="_loginModel.Password" Label="Ingresa la contraseña" />
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit">Iniciar sesión</MudButton>
+                </EditForm>
+                <MudLink Href="/register">¿No tienes cuenta? ¡Crea una!</MudLink>
+            </MudItem>
+        </MudGrid>
+    </NotAuthorized>
+</AuthorizeView>
+

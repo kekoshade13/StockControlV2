@@ -23,17 +23,38 @@ namespace StockControl.Server.Controllers
     {
         protected readonly ApplicationDbContext DbContext;
         protected readonly UserManager<ApplicationUser> UserManager;
+        protected readonly IHttpContextAccessor HttpContextAccessor;
         protected readonly IConfiguration Configuration;
 
         private string _userName;
         protected int PageSize = 10;
 
+        protected string UserName
+        {
+            get
+            {
+                // MAGIC!!!!!!!!!!!! UserName HAS value BEFORE evaluating this !!!?????
+                if (string.IsNullOrEmpty(_userName))
+                {
+                    _userName = HttpContextAccessor.HttpContext.User.Identity.Name;
+                }
+                return _userName;
+            }
+            set
+            {
+                {
+                    _userName = value;
+                }
+            }
+        }
+
         public Controller(
-            ApplicationDbContext applicationDbContext, IConfiguration configuration, UserManager<ApplicationUser> userManager = null)
+            ApplicationDbContext applicationDbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
         {
             DbContext = applicationDbContext;
             UserManager = userManager;
             Configuration = configuration;
+            HttpContextAccessor = httpContextAccessor;
         }
     }
 }

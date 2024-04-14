@@ -11,6 +11,7 @@ namespace StockControl.Shared.Models
     {
         [Key]
         public int Id_Equip { get; set; }
+        public bool Active { get; set; }
         public string NameEquip { get; set; }
         public List<SpareParts> SpareParts { get; set; }
     }

@@ -14,10 +14,8 @@ namespace StockControl.Server.Controllers
     [AllowAnonymous]
     public class EquiposController : Controller
     {
-        //private readonly XXX YYY;
-
-        public EquiposController(ApplicationDbContext context, IConfiguration configuration)
-            : base(context, configuration) { }
+        public EquiposController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            : base(context, configuration, httpContextAccessor, userManager) { }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] EquiposDto equiposDto)
@@ -31,6 +29,7 @@ namespace StockControl.Server.Controllers
 
                 Equipos equipo = new()
                 {
+                    Active = true,
                     NameEquip = equiposDto.NameEquip,
                 };
                 await DbContext.Equipos.AddAsync(equipo);
@@ -42,85 +41,85 @@ namespace StockControl.Server.Controllers
             }
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Get(string templateId)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.ViewTemplate + " " + templateId, "Read");
-        //        // Obtener para ver que no es null y que el tenant es el del user
-        //        TemplateDto templateDto = await DbContext.Template
-        //            .Where(x => x.TenantId == TenantId && x.Id == templateId && x.Active) // CHeck bundle?
-        //            .Select(template => new TemplateDto()
-        //            {
+        [HttpGet("{equipoId}")]
+        public async Task<IActionResult> Get(int equipoId)
+        {
+            try
+            {
+                EquiposDto equiposDto = await DbContext.Equipos
+                    .Where(x => x.Active && x.Id_Equip == equipoId)
+                    .Select(equipo => new EquiposDto()
+                    {
+                        Id_Equip = equipo.Id_Equip,
+                        NameEquip = equipo.NameEquip,
+                    }).FirstOrDefaultAsync();
+                if (equiposDto == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return Ok(equiposDto);
+                }
+            }
+            catch (Exception exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
 
-        //            }).FirstOrDefaultAsync();
-        //        if (templateDto == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            return Ok(templateDto);
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
+        [HttpPut]
+        public async Task<ActionResult> Put([FromBody] EquiposDto equipoDto)
+        {
+            try
+            {
+                if (equipoDto == null)
+                {
+                    return BadRequest();
+                }
+                // Get template from DB using id, similar Get
+                if (equipoDto == null)
+                {
+                    return BadRequest();
+                }
+                Equipos equipo = await DbContext.Equipos.Where(x => x.Active && x.Id_Equip == equipoDto.Id_Equip).FirstOrDefaultAsync();
+                if (equipo == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    equipo.NameEquip = equipoDto.NameEquip;
+                }
+                return Ok(await DbContext.SaveChangesAsync());
+            }
+            catch (Exception exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
 
-        //[HttpPut]
-        //public async Task<ActionResult> Put([FromBody] TemplateDto templateDto)
-        //{
-        //    try
-        //    {
-        //        if (templateDto == null)
-        //        {
-        //            return BadRequest();
-        //        }
-        //        LogInformation("{0} {1}", StringResource.UpdateTemplate + " " + templateDto.Id, "Update");
-        //        // Get template from DB using id, similar Get
-        //        if (template == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        DbContext.Entry(template).State = EntityState.Modified;
-        //        return Ok(await DbContext.SaveChangesAsync());
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
-
-        //[HttpDelete]
-        //public async Task<IActionResult> Delete(string templateId)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.DeleteTemplate + " " + templateId, "Delete");
-        //        // Buscarlo con check tenant
-        //        Template template;// = await 
-        //        if (template == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            template.Active = false;
-        //            DbContext.Entry(template).State = EntityState.Modified;
-        //            return Ok(await DbContext.SaveChangesAsync());
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
+        [HttpDelete("{equipoId}")]
+        public async Task<IActionResult> Delete(int equipoId)
+        {
+            try
+            {
+                Equipos equipo = await DbContext.Equipos.Where(x => x.Active && x.Id_Equip == equipoId).FirstOrDefaultAsync();
+                if (equipo == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    equipo.Active = false;
+                    return Ok(await DbContext.SaveChangesAsync());
+                }
+            }
+            catch (Exception exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
 
         [HttpGet("equipos")]
         public async Task<IActionResult> GetEquipos(int? page = null, string queryString = null)
@@ -134,7 +133,7 @@ namespace StockControl.Server.Controllers
                     int skip = (int)page * PageSize;
                     int totalCount = await DbContext.Equipos.CountAsync();
                     equipos = await DbContext.Equipos
-                        .Where(x => (queryString == null || x.NameEquip.ToLower().Contains(queryString)))
+                        .Where(x => x.Active && (queryString == null || x.NameEquip.ToLower().Contains(queryString)))
                         .OrderBy(x => x.Id_Equip)
                         .Skip(skip)
                         .Take(PageSize)
@@ -143,13 +142,13 @@ namespace StockControl.Server.Controllers
                             Id_Equip = x.Id_Equip,
                             NameEquip = x.NameEquip
                         }).ToListAsync();
-                    PaginatedResponse<EquiposDto> templatePages = new(equipos, totalCount, (int)page, PageSize);
-                    return Ok(templatePages);
+                    PaginatedResponse<EquiposDto> paginatedResponse = new(equipos, totalCount, (int)page, PageSize);
+                    return Ok(paginatedResponse);
                 }
                 else
                 {
                     equipos = await DbContext.Equipos
-                        .Where(x => (queryString == null || x.NameEquip.ToLower().Contains(queryString)))
+                        .Where(x => x.Active && (queryString == null || x.NameEquip.ToLower().Contains(queryString)))
                         .OrderBy(x => x.Id_Equip)
                         .Select(x => new EquiposDto()
                         {
@@ -164,33 +163,6 @@ namespace StockControl.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
-
-        //[HttpGet("export")]
-        //public async Task<IActionResult> ExportTemplates(string exportType, string queryString = null)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.ExportTemplates, "Read");
-        //        queryString = queryString?.ToLower();
-        //        List<TemplateDto> templates = await DbContext.Template
-        //                .Where(x => x.TenantId == TenantId && x.Active
-        //                    && (queryString == null || x.Name.ToLower().Contains(queryString)))
-        //                .OrderBy(x => x.Id)
-        //                .Select(template => new TemplateDto()
-        //                {
-
-        //                }).ToListAsync();
-        //        switch (exportType)
-        //        {
-        //            case (
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
 
         //[HttpGet("export")]
         //public async Task<IActionResult> ExportTemplates(string exportType, string dates = null, string queryString = null)

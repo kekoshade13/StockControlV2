@@ -11,296 +11,143 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using StockControl.Server.Services;
 using System.Security.Claims;
-using StockControl.Shared.RequestModels;
+using StockControl.Shared.ModelsDto.RequestModels;
+using System.Text.RegularExpressions;
 
 namespace StockControl.Server.Controllers
 {
     [Route("api/account")]
     [ApiController]
     [AllowAnonymous]
-    public class LoginController : Controller
+    public class LoginController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITokenService _tokenService;
 
-        public LoginController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
-            : base(context, configuration, userManager) { }
+        public LoginController(IConfiguration configuration, SignInManager<ApplicationUser> signInManager, ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ITokenService tokenService)
+        {
+            _configuration = configuration;
+            _signInManager = signInManager;
+            _dbContext = dbContext;
+            _userManager = userManager;
+            _tokenService = tokenService;
+        }
 
-        [HttpPost]
-        public async Task<IActionResult> Login([FromBody] UserLogin userLogin)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] AuthenticationRequest login)
         {
             try
             {
-                if (userLogin == null)
+                // var por usings ambiguos
+                var result = await _signInManager.PasswordSignInAsync(login.UserName!, login.Password!, false, false);
+                if (!result.Succeeded)
                 {
-                    return BadRequest();
+                    return BadRequest(new AuthenticationResponse { IsAuthSuccessful = false, ErrorMessage = "Usuario o contraseña incorrecto" });
                 }
-                ApplicationUser user = await UserManager.FindByNameAsync(userLogin.UserName);
-
-                if (user == null || !await UserManager.CheckPasswordAsync(user, userLogin.Password))
+                ApplicationUser user = await _userManager.FindByNameAsync(login.UserName);
+                if (user != null)
                 {
-                    return BadRequest();
+                    List<Claim> claims = new()
+                    {
+                        new Claim(ClaimTypes.Name, user.UserName),
+                    };
+                    SigningCredentials credentials = _tokenService.GetSigningCredentials();
+                    JwtSecurityToken token = _tokenService.GenerateTokenOptions(credentials, claims);
+                    string refreshToken = _tokenService.GenerateRefreshToken();
+
+                    _ = int.TryParse(_configuration["Jwt:ExpireInMinutes"], out int refreshTokenExpireInMinutes);
+                    user!.RefreshToken = refreshToken;
+                    user!.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(refreshTokenExpireInMinutes);
+
+                    await _userManager.UpdateAsync(user);
+
+                    return Ok(new AuthenticationResponse { IsAuthSuccessful = true, Token = new JwtSecurityTokenHandler().WriteToken(token), RefreshToken = refreshToken, Expiration = token.ValidTo });
                 }
                 else
                 {
-                    var tokenString = GenerateToken(userLogin);
-
-                    SigningCredentials signingCredentials = _tokenService.GetSigningCredentials();
-                    List<Claim> claims = await _tokenService.GetClaims(user);
-                    JwtSecurityToken tokenOptions = _tokenService.GenerateTokenOptions(signingCredentials, claims);
-                    string token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-                    user.RefreshToken = _tokenService.GenerateRefreshToken();
-                    int refreshTokenExpiry = 2;
-                    user.RefreshTokenExpiryTime = DateTime.UtcNow.AddHours(refreshTokenExpiry);
-
-                    await UserManager.UpdateAsync(user);
-                    DateTime expiration = DateTime.UtcNow.AddMinutes(120);
-                    return Ok(new AuthenticationResponse{ IsAuthSuccessful = true, Token = token, RefreshToken = user.RefreshToken, Expiration = expiration });
+                    return BadRequest("Usuario no encontrado");
                 }
             }
-            catch (Exception exception)
+            catch
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
-        private string GenerateToken(UserLogin userLogin)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"]!));
-            var signInCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(Configuration["JwtSettings:Issuer"], Configuration["JwtSettings:Issuer"], null,
-                expires: DateTime.UtcNow.AddMinutes(10), signingCredentials: signInCredentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        //[HttpGet]
-        //public async Task<IActionResult> Get(string templateId)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.ViewTemplate + " " + templateId, "Read");
-        //        // Obtener para ver que no es null y que el tenant es el del user
-        //        TemplateDto templateDto = await DbContext.Template
-        //            .Where(x => x.TenantId == TenantId && x.Id == templateId && x.Active) // CHeck bundle?
-        //            .Select(template => new TemplateDto()
-        //            {
-
-        //            }).FirstOrDefaultAsync();
-        //        if (templateDto == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            return Ok(templateDto);
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
-
-        //[HttpPut]
-        //public async Task<ActionResult> Put([FromBody] TemplateDto templateDto)
-        //{
-        //    try
-        //    {
-        //        if (templateDto == null)
-        //        {
-        //            return BadRequest();
-        //        }
-        //        LogInformation("{0} {1}", StringResource.UpdateTemplate + " " + templateDto.Id, "Update");
-        //        // Get template from DB using id, similar Get
-        //        if (template == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        DbContext.Entry(template).State = EntityState.Modified;
-        //        return Ok(await DbContext.SaveChangesAsync());
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
-
-        //[HttpDelete]
-        //public async Task<IActionResult> Delete(string templateId)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.DeleteTemplate + " " + templateId, "Delete");
-        //        // Buscarlo con check tenant
-        //        Template template;// = await 
-        //        if (template == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            template.Active = false;
-        //            DbContext.Entry(template).State = EntityState.Modified;
-        //            return Ok(await DbContext.SaveChangesAsync());
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
-
-        [HttpGet("equipos")]
-        public async Task<IActionResult> GetEquipos(int? page = null, string queryString = null)
+        public async Task<IActionResult> RefreshToken(RefreshTokenModel refreshTokenModel)
         {
             try
             {
-                List<EquiposDto> equipos;
-                queryString = queryString?.ToLower();
-                if (page != null)
+                if (refreshTokenModel is null)
                 {
-                    int skip = (int)page * PageSize;
-                    int totalCount = await DbContext.Equipos.CountAsync();
-                    equipos = await DbContext.Equipos
-                        .Where(x => (queryString == null || x.NameEquip.ToLower().Contains(queryString)))
-                        .OrderBy(x => x.Id_Equip)
-                        .Skip(skip)
-                        .Take(PageSize)
-                        .Select(x => new EquiposDto()
-                        {
-                            Id_Equip = x.Id_Equip,
-                            NameEquip = x.NameEquip
-                        }).ToListAsync();
-                    PaginatedResponse<EquiposDto> templatePages = new(equipos, totalCount, (int)page, PageSize);
-                    return Ok(templatePages);
+                    return Unauthorized(new AuthenticationResponse { IsAuthSuccessful = false, ErrorMessage = "Refresh token no existente" });
                 }
-                else
+                string accessToken = refreshTokenModel.Token;
+                string refreshToken = refreshTokenModel.RefreshToken;
+                ClaimsPrincipal principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+
+                if (principal == null)
                 {
-                    equipos = await DbContext.Equipos
-                        .Where(x => (queryString == null || x.NameEquip.ToLower().Contains(queryString)))
-                        .OrderBy(x => x.Id_Equip)
-                        .Select(x => new EquiposDto()
-                        {
-                            Id_Equip = x.Id_Equip,
-                            NameEquip = x.NameEquip
-                        }).ToListAsync();
-                    return Ok(equipos);
+                    return BadRequest("Token inválido o refresh token inválido");
                 }
+                SigningCredentials credentials = _tokenService.GetSigningCredentials();
+                ApplicationUser user = await _userManager.FindByEmailAsync(principal.FindFirstValue(ClaimTypes.Email));
+                if (user == null)
+                {
+                    return BadRequest("No se encontró usuario");
+                }
+                JwtSecurityToken token = _tokenService.GenerateTokenOptions(credentials, principal.Claims.ToList());
+                string newToken = new JwtSecurityTokenHandler().WriteToken(token);
+                user.RefreshToken = _tokenService.GenerateRefreshToken();
+                DateTime expiration = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration.GetSection("Jwt").GetSection("ExpireInMinutes").Value));
+
+                await _userManager.UpdateAsync(user);
+                return Ok(new AuthenticationResponse { IsAuthSuccessful = true, Token = newToken, RefreshToken = user.RefreshToken, Expiration = expiration });
             }
-            catch (Exception exception)
+            catch
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
-        //[HttpGet("export")]
-        //public async Task<IActionResult> ExportTemplates(string exportType, string queryString = null)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.ExportTemplates, "Read");
-        //        queryString = queryString?.ToLower();
-        //        List<TemplateDto> templates = await DbContext.Template
-        //                .Where(x => x.TenantId == TenantId && x.Active
-        //                    && (queryString == null || x.Name.ToLower().Contains(queryString)))
-        //                .OrderBy(x => x.Id)
-        //                .Select(template => new TemplateDto()
-        //                {
+        [HttpPost("register")]
+        public async Task<IActionResult> Post([FromBody] RegisterRequest register)
+        {
+            try
+            {
+                if (!Regex.IsMatch(register.UserName, @"^[a-zA-Z0-9]+$"))
+                {
+                    return Ok(new RegisterResponse { Successful = false, Errors = new List<string> { "Username is invalid, can only contain letters or digits." } });
+                }
 
-        //                }).ToListAsync();
-        //        switch (exportType)
-        //        {
-        //            case (
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
+                ApplicationUser newUser = new ApplicationUser
+                {
+                    Name = register.Name,
+                    LastName = register.LastName,
+                    UserName = register.UserName,
+                    NormalizedUserName = register.UserName,
+                    CI = register.CI,
+                    RefreshToken = string.Empty
+                };
+                IdentityResult result = await _userManager.CreateAsync(newUser, register.Password);
 
-        //[HttpGet("export")]
-        //public async Task<IActionResult> ExportTemplates(string exportType, string dates = null, string queryString = null)
-        //{
-        //    try
-        //    {
-        //        LogInformation("{0} {1}", StringResource.ExportTemplates + " " + dates + " - " + queryString, "Read");
-        //        string[] datesStr = dates?.Split(",");
-        //        DateTime? startDate = datesStr == null || string.IsNullOrEmpty(datesStr[0]) ? null : DateTime.Parse(datesStr[0]);
-        //        DateTime? endDate = datesStr == null || string.IsNullOrEmpty(datesStr[1]) ? null : DateTime.Parse(datesStr[1]);
-        //        if ((startDate != null) && (endDate != null) && (startDate > endDate))
-        //        {
-        //            return BadRequest(-1);
-        //        }
-
-        //        List<TemplateDto> templates = USE THE query of the else in ExportTemplates
-        //        List<string> header = GenerateHeader();
-        //        switch (exportType)
-        //        {
-        //            case ExportationType.Excel:
-        //                {
-        //                    var content = DocumentService.GenerateExcel(ToStringListList(templates), StringResource.Templates, header);
-        //                    var contentType = "application/octet-stream";
-        //                    return File(content, contentType, StringResource.Templates + ".xlsx");
-        //                }
-        //            case ExportationType.PDF:
-        //                {
-        //                    var content = DocumentService.GeneratePDF(ToStringListList(templates), StringResource.Templates, header);
-        //                    var contentType = "application/pdf";
-        //                    return File(content, contentType, StringResource.Templates + ".pdf");
-        //                }
-        //            case ExportationType.Text:
-        //                {
-        //                    var content = await DocumentService.GenerateCsv(ToStringListList(templates), header);
-        //                    var contentType = "text/csv";
-        //                    return File(content, contentType, StringResource.Templates + ".csv");
-        //                }
-        //            case ExportationType.Json:
-        //                {
-        //                    var content = JsonSerializer.Serialize(templates);
-        //                    var contentType = "text/json";
-        //                    return File(Encoding.ASCII.GetBytes(content), contentType, StringResource.Templates + ".json");
-        //                }
-        //            default:
-        //                return BadRequest();
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        LogError(exception);
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
-
-        //private static List<List<string>> ToStringListList(List<TemplateDto> templates)
-        //{
-        //    List<List<string>> data = new();
-        //    foreach (TemplateDto template in templates)
-        //    {
-        //        // Check each property before add, must match GenerateHeader
-        //        List<string> line = new()
-        //        {
-        //            template.,
-        //        };
-        //        data.Add(line);
-        //    }
-        //    return data;
-        //}
-
-        //private static List<string> GenerateHeader()
-        //{
-        //    List<string> properties = new()
-        //    {
-        //        StringResource.Id,
-        //        StringResource.Name,
-        //        StringResource.Bundles
-        //    };
-        //    return properties;
-        //}
+                if (!result.Succeeded)
+                {
+                    IEnumerable<string> errors = result.Errors.Select(x => x.Description);
+                    return Ok(new RegisterResponse { Successful = false, Errors = errors });
+                }
+                else
+                {
+                    return Ok(new RegisterResponse { Successful = true });
+                }
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 }
