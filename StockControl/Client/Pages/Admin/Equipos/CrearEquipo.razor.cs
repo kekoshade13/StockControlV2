@@ -15,6 +15,8 @@ namespace StockControl.Client.Pages.Admin.Equipos
         public MudDialogInstance MudDialog { get; set; }
         [Parameter]
         public EquiposDto EquipoDto { get; set; }
+        [Parameter]
+        public bool Edit { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -47,15 +49,31 @@ namespace StockControl.Client.Pages.Admin.Equipos
         {
             try
             {
-                HttpResponseMessage response = await Http.PostAsJsonAsync($"api/equipos", EquipoDto);
-                if (response.IsSuccessStatusCode)
+                if (Edit)
                 {
-                    MudDialog.Close(true);
-                    Snackbar.Add("Equipo creado correctamente", Severity.Success);
+                    HttpResponseMessage response = await Http.PutAsJsonAsync($"api/equipos", EquipoDto);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        MudDialog.Close(true);
+                        Snackbar.Add("Equipo actualizado correctamente", Severity.Success);
+                    }
+                    else
+                    {
+                        Snackbar.Add("No se pudo crear el equipo", Severity.Error);
+                    }
                 }
                 else
                 {
-                    Snackbar.Add("No se pudo crear el equipo", Severity.Error);
+                    HttpResponseMessage response = await Http.PostAsJsonAsync($"api/equipos", EquipoDto);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        MudDialog.Close(true);
+                        Snackbar.Add("Equipo creado correctamente", Severity.Success);
+                    }
+                    else
+                    {
+                        Snackbar.Add("No se pudo crear el equipo", Severity.Error);
+                    }
                 }
             }
             catch

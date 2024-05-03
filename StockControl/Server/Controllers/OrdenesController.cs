@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StockControl.Server.Data;
+using StockControl.Shared.Constants;
 using StockControl.Shared.Models;
 using StockControl.Shared.Models.Identity;
 using StockControl.Shared.ModelsDto;
@@ -39,11 +40,11 @@ namespace StockControl.Server.Controllers
                         Active = true,
                         nOrden = ordenDto.nOrden,
                         Escuela = ordenDto.Escuela,
-                        UserName = new ApplicationUser { UserName = ordenDto.UserName },
+                        UserName = user,
                         Date = DateTime.UtcNow.ToShortDateString(),
                         Hour = DateTime.UtcNow.Hour.ToString(),
                         TotalDate = DateTime.UtcNow.ToString(),
-                        State = ordenDto.Estado,
+                        State = OrderStates.New,
                         Equipo = equipo
                     };
                     await DbContext.OrdenesTotales.AddAsync(ordenTotal);

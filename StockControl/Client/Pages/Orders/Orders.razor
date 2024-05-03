@@ -17,17 +17,13 @@
                     <MudTh>Serie</MudTh>
                     <MudTh>Escuela</MudTh>
                     <MudTh>Estado</MudTh>
-                    <MudTh>Tomada por</MudTh>
-                    <MudTh></MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
-
                 <RowTemplate>
                     <MudTd>@order.Id</MudTd>
                     <MudTd>@order.nOrden</MudTd>
                     <MudTd>@order.Escuela</MudTd>
                     <MudTd>@order.Estado</MudTd>
-                    <MudTd>@order.TakenBy</MudTd>
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" OnClick="() => GoToOrder(order.Id)" />
                     </MudTd>
@@ -42,5 +38,3 @@
         </MudItem>
     </MudGrid>
 </MudContainer>
-
-

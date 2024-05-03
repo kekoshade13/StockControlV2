@@ -83,14 +83,20 @@ namespace StockControl.Client.Pages.Admin.Equipos
             }
         }
 
-        private async Task OpenCreateDialog()
+        private async Task OpenEditDialog(EquiposDto equipo) => await OpenCreateDialog(equipo);
+
+        private async Task OpenCreateDialog(EquiposDto equipo = null)
         {
             try
             {
                 DialogOptions options = new() { CloseButton = false };
-                IDialogReference showDialog = DialogService.Show<CrearEquipo>("Crear equipo", options);
-                var result = await showDialog.Result;
-
+                DialogParameters parameters = new()
+                {
+                    ["Edit"] = equipo is not null,
+                    ["EquipoDto"] = equipo
+                };
+                IDialogReference showDialog = DialogService.Show<CrearEquipo>("Crear equipo", parameters, options);
+                DialogResult result = await showDialog.Result;
                 if (!result.Canceled)
                 {
                     await _table.ReloadServerData();

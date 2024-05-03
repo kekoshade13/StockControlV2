@@ -1,0 +1,18 @@
+﻿@using StockControl.Shared.Constants;
+@using StockControl.Shared.ModelsDto;
+<MudDialog>
+    <DialogContent>
+        <MudTextField T="string" @bind-Value="_ordenTotalDto.nOrden" Label="Serie del equipo" />
+        <MudTextField T="int" @bind-Value="_ordenTotalDto.Escuela" Label="Número de escuela" />
+        <MudSelect T="EquiposDto" Label="Equipo" @bind-Value="_ordenTotalDto.Equipos">
+            @foreach (EquiposDto equipo in _equipos)
+            {
+                <MudSelectItem Value="equipo">@equipo.NameEquip</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancelar</MudButton>
+        <MudButton OnClick="() => CreateNewOrder()">Confirmar</MudButton>
+    </DialogActions>
+</MudDialog>
