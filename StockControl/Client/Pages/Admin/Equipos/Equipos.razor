@@ -14,12 +14,13 @@
                 <MudTd>@equipo.NameEquip</MudTd>
                 <MudTd>
                     <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" Color="Color.Inherit" OnClick="() => OpenViewDialog(equipo.Id_Equip)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Inherit" OnClick="() => OpenEditDialog(equipo)" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => Delete(equipo.Id_Equip)" />
                 </MudTd>
             </RowTemplate>
         </MudTable>
     </MudItem>
     <MudItem xs="12" md="2">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">Crear equipo</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => OpenCreateDialog()">Crear equipo</MudButton>
     </MudItem>
 </MudGrid>
